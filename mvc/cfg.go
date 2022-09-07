@@ -4,7 +4,7 @@ import "fmt"
 
 const (
 	Host        = ":80"
-	RelativeDIR = "mvc/"
+	RelativeDIR = ""
 )
 
 func SayIt() {
