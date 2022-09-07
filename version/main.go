@@ -14,12 +14,16 @@ func main() {
 
 func handle(w http.ResponseWriter, r *http.Request) {
 	file := r.URL.Path[len("/"):]
+	r.ParseForm()
+	str := r.Form.Get("str")
+
 	t, err := template.ParseFiles("version/" + file)
 	if err != nil {
 		fmt.Fprintf(w, "%v", err)
 		return
 	}
-	err = t.Execute(w, nil)
+
+	err = t.Execute(w, str)
 	if err != nil {
 		fmt.Fprintf(w, "%v", err)
 		return
