@@ -12,7 +12,7 @@ http://localhost/a.html?str=123
 
 
 ## 目標 MVC 簡易框架
-- [] 規劃controller model view
+- [x] 規劃controller model view位置
 - [] router連結controller model view
 - [] 參數傳遞
 - [] 測試session是否通用
