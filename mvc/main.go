@@ -40,16 +40,15 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	var router = &controller.Router{}
-	router.AddController(controller.NewMember())
-	router.AddController(controller.NewGuest())
+	controller.Router.AddController(controller.Index)
+	controller.Router.AddController(controller.Member)
+	controller.Router.AddController(controller.Guest)
 
-	if router.IsNotActionExist(ctl, action) {
-		controller.NotFound404(w, r)
-		return
+	if controller.Router.IsNotActionExist(ctl, action) {
+		ctl, action = "index", "NotFound404"
 	}
 
-	data, err := router.Execute(ctl, action, w, r)
+	data, err := controller.Router.Execute(ctl, action, r)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -4,21 +4,16 @@ import (
 	"net/http"
 )
 
+var Member *member
+
 func init() {
-
+	Member = &member{}
+	Member.name = "member"
 }
 
-type Member struct {
-	ControllerBase
-}
+type member struct{ ControllerBase }
 
-func NewMember() *Member {
-	m := &Member{}
-	m.name = "member"
-	return m
-}
-
-func (m *Member) Index(w http.ResponseWriter, r *http.Request) (rst string, err error) {
+func (m *member) Index(r *http.Request) (rst string, err error) {
 	// 使用 model
 	// 取會員資料
 	userID := "lim2"
