@@ -1,12 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"mvc/controller"
 	"net/http"
-	"reflect"
 	"strings"
+	"text/template"
 )
 
 func main() {
@@ -17,38 +18,47 @@ func main() {
 	log.Fatal(http.ListenAndServe(Host, nil))
 
 }
+func getControllerAction(path string) (ctl string, action string, err error) {
+	ctl = ""
+	action = ""
+	err = nil
+	p := strings.Split(path, "/")
+	if len(p) <= 2 {
+		err = errors.New("path < 2")
+		return
+	}
+	// 拆出 controller 與 action
+	ctl = p[1]
+	action = p[2]
+	action = strings.ToUpper(action)[0:1] + action[1:]
+	return
+}
 
 func handle(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%v\n", r.URL.Path)
-	// 檢查有無 / controller / action /
-	// 若無 跳404 return
-	// ---------------------------------------
-	// 拆出 controller 與 action
-	ctl := "member"
-	action := "index"
-	str := r.URL.Path[len("/"+ctl+"/"):] // 拆action
-	fmt.Fprintf(w, "%v\n", str)
-	str = strings.ToUpper(str)[0:1] + str[1:]
-	fmt.Println(str)
-
-	t := reflect.TypeOf(&controller.Member{}) // ---------------- 怎麼用ctl來TypeOf
-	_, isExist := t.MethodByName(str)
-	fmt.Println(isExist)
-	if !isExist {
-		controller.NotFound404(w, r)
+	ctl, action, err := getControllerAction(r.URL.Path)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	// m := controller.Member{}
-	// rst, err := m.Index(w, r)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	var router = &controller.Router{}
+	router.AddController(controller.NewMember())
+	router.AddController(controller.NewGuest())
 
-	// path := "view/member/index.html"
-	// t, err := template.ParseFiles(RelativeDIR + path)
-	// if err != nil {
-	// 	fmt.Fprintf(w, "%v", err)
-	// 	return
-	// }
-	// _ = t.Execute(w, rst)
+	if router.IsNotActionExist(ctl, action) {
+		controller.NotFound404(w, r)
+		return
+	}
+
+	data, err := router.Execute(ctl, action, w, r)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	viewPath := RelativeDIR + "view/" + ctl + "/" + action + ".html"
+	template, err := template.ParseFiles(viewPath)
+	if err != nil {
+		fmt.Fprintf(w, "%v", err)
+		return
+	}
+	_ = template.Execute(w, data)
 }
